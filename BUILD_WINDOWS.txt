@@ -1,0 +1,10 @@
+PUMPING LEMMA SIMULATOR - WINDOWS EXE BUILD
+
+1. Install Node.js LTS on Windows.
+2. Open PowerShell in this folder.
+3. Run: npm install
+4. Test the desktop app: npm start
+5. Build the installer: npm run dist
+6. The .exe installer will be created inside the dist folder.
+
+The existing HTML/CSS/JavaScript simulator is packaged unchanged inside Electron.

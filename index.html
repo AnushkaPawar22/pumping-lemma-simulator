@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pumping Lemma Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- Top Navigation & Progress Bar -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="header-titles">
+          <h1 class="logo-title">Pumping Lemma Simulator</h1>
+          <p class="logo-subtitle">Split &bull; Pump &bull; Check &bull; Discover</p>
+        </div>
+        <span class="logo-badge">Automata Theory Experiment</span>
+      </div>
+
+      <!-- Step Progress Bar (1 Input -> 2 Split -> 3 Pump -> 4 Check -> 5 Result) -->
+      <nav class="stepper-nav" aria-label="Experiment Progress">
+        <div class="step-item active" id="progStep1" data-step="1">
+          <span class="step-num">1</span>
+          <span class="step-label">Input</span>
+        </div>
+        <div class="step-line" id="line1_2"></div>
+        <div class="step-item" id="progStep2" data-step="2">
+          <span class="step-num">2</span>
+          <span class="step-label">String w</span>
+        </div>
+        <div class="step-line" id="line2_3"></div>
+        <div class="step-item" id="progStep3" data-step="3">
+          <span class="step-num">3</span>
+          <span class="step-label">Split xyz</span>
+        </div>
+        <div class="step-line" id="line3_4"></div>
+        <div class="step-item" id="progStep4" data-step="4">
+          <span class="step-num">4</span>
+          <span class="step-label">Pump y</span>
+        </div>
+        <div class="step-line" id="line4_5"></div>
+        <div class="step-item" id="progStep5" data-step="5">
+          <span class="step-num">5</span>
+          <span class="step-label">Result</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Container Hosting Progressive Views -->
+    <main class="simulator-main">
+
+      <!-- ===================================================================
+           SCREEN 0: WELCOME SCREEN
+           =================================================================== -->
+      <section class="sim-screen active-screen" id="welcomeScreen">
+        <div class="welcome-card card">
+          <div class="welcome-icon">⚙️</div>
+          <h2 class="welcome-title">Interactive Pumping Lemma Simulator</h2>
+          <p class="welcome-desc">
+            Test a formal language by systematically splitting, pumping, and checking strings step-by-step.
+          </p>
+
+          <div class="welcome-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="btnStartSimulation">
+              Start Simulation &rarr;
+            </button>
+            <button type="button" class="btn btn-secondary btn-lg" id="btnOpenExamples">
+              Try Examples &hellip;
+            </button>
+          </div>
+
+          <!-- Quick Example Drawer (Accessible from Welcome Screen) -->
+          <div class="example-drawer hidden" id="exampleDrawer">
+            <h3 class="drawer-title">Select an Experiment Case:</h3>
+            <div class="example-grid">
+              <button type="button" class="example-card-btn" data-ex="1">
+                <strong>Case 1 (Valid Witness)</strong>
+                <span>L = {aⁿbⁿ}, w = aaabbb, p = 3</span>
+                <span class="tag tag-success">Demonstrates Violation</span>
+              </button>
+              <button type="button" class="example-card-btn" data-ex="2">
+                <strong>Case 2 (Invalid p)</strong>
+                <span>w = aaabb, p = 0</span>
+                <span class="tag tag-danger">p &le; 0 Error</span>
+              </button>
+              <button type="button" class="example-card-btn" data-ex="3">
+                <strong>Case 3 (Wrong Format)</strong>
+                <span>w = abc, p = 3</span>
+                <span class="tag tag-danger">Alphabet Mismatch</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           STEP 1: ENTER THE EXPERIMENT
+           =================================================================== -->
+      <section class="sim-screen" id="step1Screen">
+        <div class="card form-card">
+          <div class="screen-header">
+            <span class="step-indicator">Step 1 of 5</span>
+            <h2 class="screen-title">Setup the Experiment</h2>
+            <p class="screen-subtitle">Choose a language and provide your witness string and pumping length.</p>
+          </div>
+
+          <form id="experimentForm" onsubmit="return false;">
+            <div class="form-group">
+              <label for="selectLang" class="form-label">Select Language L</label>
+              <select id="selectLang" class="form-input">
+                <option value="an_bn" selected>L = { aⁿbⁿ | n &ge; 0 }</option>
+                <option value="an_bn_cn">L = { aⁿbⁿcⁿ | n &ge; 0 }</option>
+              </select>
+              <span class="input-hint" id="langFormatHint">Condition: Equal number of 'a's followed by equal number of 'b's.</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="inputW" class="form-label">Enter String w</label>
+                <input type="text" id="inputW" class="form-input mono-font" value="aaabbb" placeholder="e.g. aaabbb" autocomplete="off" spellcheck="false">
+                <span class="input-hint">Must belong to language L</span>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="inputP" class="form-label">Pumping Length p</label>
+                <input type="number" id="inputP" class="form-input" value="3" min="1" max="15">
+                <span class="input-hint">Pumping limit: |xy| &le; p</span>
+              </div>
+            </div>
+
+            <!-- Inline Error Box -->
+            <div id="step1Error" class="alert-box alert-danger hidden">
+              <span class="alert-icon">⚠️</span>
+              <div class="alert-text">
+                <strong id="step1ErrorTitle">Input Error</strong>
+                <p id="step1ErrorDesc">Description goes here.</p>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="button" class="btn btn-secondary" id="btnBackToWelcome">&larr; Back</button>
+              <button type="button" class="btn btn-primary" id="btnStartExperiment">
+                Start Experiment &rarr;
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           STEP 2: STRING ANALYSIS
+           =================================================================== -->
+      <section class="sim-screen" id="step2Screen">
+        <div class="card analysis-card">
+          <div class="screen-header">
+            <span class="step-indicator">Step 2 of 5</span>
+            <h2 class="screen-title">Witness String Analysis</h2>
+            <p class="screen-subtitle">Inspecting witness string characters and bounds before decomposition.</p>
+          </div>
+
+          <div class="string-display-container">
+            <div class="characters-tape" id="step2Tape">
+              <!-- Rendered character blocks -->
+            </div>
+            
+            <div class="metrics-row">
+              <div class="metric-pill">
+                <span class="metric-lbl">String Length</span>
+                <strong class="metric-val" id="step2StrLen">|w| = 6</strong>
+              </div>
+              <div class="metric-pill">
+                <span class="metric-lbl">Pumping Length</span>
+                <strong class="metric-val" id="step2PLen">p = 3</strong>
+              </div>
+              <div class="metric-pill">
+                <span class="metric-lbl">Bound Check</span>
+                <strong class="metric-val text-success">|w| &ge; p &check;</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="instruction-box">
+            <p>
+              According to the Pumping Lemma, since <strong>|w| &ge; p</strong>, any decomposition <strong>w = xyz</strong> must obey:
+            </p>
+            <ul class="rule-list">
+              <li><strong>Condition 1:</strong> |xy| &le; p (substrings x and y lie entirely within the first p characters)</li>
+              <li><strong>Condition 2:</strong> |y| &gt; 0 (the pumped piece y cannot be empty)</li>
+            </ul>
+          </div>
+
+          <div class="button-group">
+            <button type="button" class="btn btn-secondary" id="btnBackToStep1">&larr; Change Input</button>
+            <button type="button" class="btn btn-primary btn-pulse" id="btnFindSplits">
+              Find Splits &rarr;
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           STEP 3: SYSTEMATIC SPLIT SEARCH & MANUAL MODE
+           =================================================================== -->
+      <section class="sim-screen" id="step3Screen">
+        <div class="card splits-card">
+          <div class="screen-header">
+            <span class="step-indicator">Step 3 of 5</span>
+            <h2 class="screen-title">Decomposition Search: w = xyz</h2>
+            <p class="screen-subtitle">Calculating all combinations where |xy| &le; p and |y| &gt; 0.</p>
+          </div>
+
+          <!-- Split Mode Tabs: Automatic vs Manual Split -->
+          <div class="sub-tabs">
+            <button type="button" class="tab-btn active" id="tabAutoSplits">Systematic Splits Found</button>
+            <button type="button" class="tab-btn" id="tabManualSplit">Manual Custom Split</button>
+          </div>
+
+          <!-- View A: Auto Calculated Splits List -->
+          <div id="autoSplitsContainer">
+            <div id="splitCalculatingSpinner" class="calculating-banner hidden">
+              <span class="spinner"></span> Checking possible decompositions...
+            </div>
+
+            <div class="splits-list-wrapper" id="splitsListWrapper">
+              <p class="section-instruction">Select a decomposition below, or click "Find Adversarial Split" to let the machine find one:</p>
+              
+              <div class="splits-cards-grid" id="splitsCardsGrid">
+                <!-- Dynamically populated split cards -->
+              </div>
+            </div>
+
+            <div class="adversarial-trigger-box">
+              <div class="adv-text">
+                <strong>Machine Adversary:</strong>
+                <span>Let the machine systematically test every decomposition and choose the split that breaks the language.</span>
+              </div>
+              <button type="button" class="btn btn-warning btn-lg" id="btnFindAdversarial">
+                ⚡ Find Adversarial Split
+              </button>
+            </div>
+          </div>
+
+          <!-- View B: Manual Split Input (Step 8) -->
+          <div id="manualSplitContainer" class="hidden">
+            <div class="manual-input-box">
+              <p class="manual-desc">Manually specify substrings X, Y, and Z. The simulator will verify if they satisfy all Pumping Lemma conditions.</p>
+              
+              <div class="manual-grid">
+                <div class="form-group">
+                  <label class="form-label" for="manualX">Prefix X</label>
+                  <input type="text" id="manualX" class="form-input mono-font" placeholder="e.g. a">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="manualY">Pumped Y</label>
+                  <input type="text" id="manualY" class="form-input mono-font" placeholder="e.g. aa">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="manualZ">Suffix Z</label>
+                  <input type="text" id="manualZ" class="form-input mono-font" placeholder="e.g. bbb">
+                </div>
+              </div>
+
+              <div id="manualFeedback" class="alert-box hidden">
+                <span class="alert-icon" id="manualFeedbackIcon">&check;</span>
+                <div class="alert-text" id="manualFeedbackText">Validation message</div>
+              </div>
+
+              <div class="button-group">
+                <button type="button" class="btn btn-secondary" id="btnValidateManual">Validate Custom Split</button>
+                <button type="button" class="btn btn-primary hidden" id="btnUseManualSplit">Use This Split &rarr;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="button-group top-divider">
+            <button type="button" class="btn btn-secondary" id="btnBackToStep2">&larr; Back to String</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           STEP 4 & 5 & 6: PUMPING & LIVE LANGUAGE CHECK
+           =================================================================== -->
+      <section class="sim-screen" id="step4Screen">
+        <div class="card pumping-card">
+          <div class="screen-header">
+            <span class="step-indicator">Step 4 of 5</span>
+            <h2 class="screen-title" id="pumpingStepTitle">Interactive Pumping: xyⁱz</h2>
+            <p class="screen-subtitle">Pump substring Y by varying exponent i to test language membership.</p>
+          </div>
+
+          <!-- Adversarial Alert Banner (Appears if chosen via Adversary) -->
+          <div id="advSuccessBanner" class="alert-box alert-success hidden">
+            <span class="alert-icon">🎯</span>
+            <div class="alert-text">
+              <strong>Adversarial Split Found!</strong>
+              <p>The machine detected that pumping y = <strong id="advYText">"aa"</strong> removes or adds a's without balancing b's.</p>
+            </div>
+          </div>
+
+          <!-- Active Partition Visualizer -->
+          <div class="split-visualizer-box">
+            <span class="box-tag">Current Partition of w:</span>
+            
+            <div class="partition-blocks-container" id="visualBlocksContainer">
+              <!-- Rendered Partition Chips -->
+            </div>
+
+            <div class="partition-summary-line">
+              <span class="part-sum comp-x">X = "<span id="lblPartX">a</span>"</span>
+              <span class="part-sum comp-y">Y = "<span id="lblPartY">aa</span>"</span>
+              <span class="part-sum comp-z">Z = "<span id="lblPartZ">bbb</span>"</span>
+            </div>
+          </div>
+
+          <!-- Interactive Pump Buttons (i = 0, 1, 2, 3) -->
+          <div class="pump-control-section">
+            <div class="pump-header-row">
+              <span class="pump-control-label">Pump Substring Y with exponent <em>i</em>:</span>
+              <div class="i-selector-buttons" id="iSelectorGroup">
+                <button type="button" class="btn-i-num active" data-i="0">i = 0</button>
+                <button type="button" class="btn-i-num" data-i="1">i = 1</button>
+                <button type="button" class="btn-i-num" data-i="2">i = 2</button>
+                <button type="button" class="btn-i-num" data-i="3">i = 3</button>
+              </div>
+            </div>
+
+            <!-- Dynamic String Animation Box -->
+            <div class="pump-transformation-box">
+              <div class="transform-formula" id="transformFormula">
+                x + (y)⁰ + z &rarr; x + z
+              </div>
+
+              <!-- Animated Visual Chips of Pumped String -->
+              <div class="pumped-chips-flow" id="pumpedChipsFlow">
+                <!-- Dynamically animated chips -->
+              </div>
+
+              <div class="pumped-string-output">
+                <span class="output-label">Resulting String:</span>
+                <span class="output-str mono-big" id="pumpedStringVal">abbb</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Language Check Card (Step 6) -->
+          <div class="live-check-box" id="liveCheckBox">
+            <div class="live-check-header">
+              <span class="check-icon" id="liveCheckIcon">✗</span>
+              <div class="check-header-text">
+                <h3 class="check-title" id="liveCheckTitle">abbb &notin; L</h3>
+                <span class="check-status-tag" id="liveCheckTag">Does NOT belong to L</span>
+              </div>
+            </div>
+
+            <div class="live-check-body">
+              <p class="live-check-reason" id="liveCheckReason">
+                The number of a's (1) and b's (3) is different.
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="button-group top-divider">
+            <button type="button" class="btn btn-secondary" id="btnTryAnotherSplit">
+              &larr; Try Another Split
+            </button>
+            <button type="button" class="btn btn-primary btn-pulse" id="btnFinishExperiment">
+              Finish Experiment &rarr;
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           STEP 5: FINAL RESULT / CONCLUSION
+           =================================================================== -->
+      <section class="sim-screen" id="step5Screen">
+        <div class="card result-card">
+          <div class="screen-header">
+            <span class="step-indicator">Step 5 of 5</span>
+            <h2 class="screen-title">Simulation Complete</h2>
+            <p class="screen-subtitle">Experiment summary and formal Theoretical Conclusion.</p>
+          </div>
+
+          <!-- Final Conclusion Banner -->
+          <div class="final-banner banner-violation" id="finalBanner">
+            <div class="final-banner-icon" id="finalBannerIcon">❌</div>
+            <div>
+              <h3 class="final-banner-title" id="finalBannerTitle">Violation Demonstrated</h3>
+              <p class="final-banner-desc" id="finalBannerDesc">
+                The pumped string no longer satisfies the language condition.
+              </p>
+            </div>
+          </div>
+
+          <!-- Formal Recap Table -->
+          <div class="summary-specs">
+            <div class="spec-row">
+              <span class="spec-k">Target Language:</span>
+              <strong class="spec-v" id="finalSpecLang">L = { aⁿbⁿ | n &ge; 0 }</strong>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">Original String w:</span>
+              <code class="spec-v mono" id="finalSpecW">aaabbb</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">Selected Split (xyz):</span>
+              <code class="spec-v mono" id="finalSpecSplit">x = "a", y = "aa", z = "bbb"</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">Pumping Value Tested:</span>
+              <strong class="spec-v" id="finalSpecI">i = 0</strong>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">Pumped String xyⁱz:</span>
+              <code class="spec-v mono highlight-str" id="finalSpecPumped">abbb</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-k">Language Membership:</span>
+              <span class="spec-v text-danger" id="finalSpecCheck">abbb &notin; L</span>
+            </div>
+          </div>
+
+          <!-- Academic Clarification (Expandable) -->
+          <details class="academic-note-collapsible" open>
+            <summary class="note-summary">
+              <strong>📖 What does this demonstrate? (Theory of Computation Note)</strong>
+            </summary>
+            <div class="note-content">
+              <p>
+                The simulator demonstrates how pumping a selected valid substring can produce a string outside the language. 
+                A complete Pumping Lemma proof for non-regularity requires considering <em>every</em> valid decomposition, not just one.
+              </p>
+            </div>
+          </details>
+
+          <!-- Navigation / Restart Buttons -->
+          <div class="button-group top-divider">
+            <button type="button" class="btn btn-secondary" id="btnRestartSameSplit">
+              Test Another i
+            </button>
+            <button type="button" class="btn btn-secondary" id="btnRestartOtherSplit">
+              Try Another Split
+            </button>
+            <button type="button" class="btn btn-primary" id="btnNewExperiment">
+              New Experiment &rarr;
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

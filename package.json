@@ -1,0 +1,43 @@
+{
+  "name": "pumping-lemma-simulator",
+  "version": "1.0.0",
+  "description": "Interactive Pumping Lemma Simulator for Formal Languages and Automata Theory",
+  "main": "main.js",
+  "author": "College Project",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^38.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.college.pumpinglemma.simulator",
+    "productName": "Pumping Lemma Simulator",
+    "files": [
+      "index.html",
+      "script.js",
+      "style.css",
+      "main.js",
+      "README.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "Pumping-Lemma-Simulator-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pumping Lemma Simulator"
+    }
+  }
+}

@@ -1,91 +1,99 @@
-# Pumping Lemma Simulator (Interactive Web Application)
+# Pumping Lemma Simulator (Generic & User-Input Driven Engine)
 
 > **Formal Languages and Automata Theory — Interactive College Project**  
-> A progressive, step-by-step interactive simulator demonstrating the Pumping Lemma for Regular Languages.
+> A progressive, step-by-step interactive simulator demonstrating the Pumping Lemma for Regular Languages.  
+> Powered by an extensible **Generic Formal Language Parser & AST Engine**.
 
 ---
 
 ## 🎮 Main User Experience & Philosophy
 
-Unlike static dashboards that dump all data onto one screen, this application is built as an **interactive simulator**:
-- **Experiment → Action → Response → Next Action**
-- The user does **not** see all results immediately.
-- The experiment unfolds step-by-step across 5 progressive stages.
+Unlike static dashboards or simulators restricted to hard-coded languages, this application is:
+- **Generic & User-Input Driven**: Students can type arbitrary formal language equations with custom variables (`m`, `n`, `k`, `p`, `i`, etc.).
+- **Interactive & Step-by-Step**: The experiment unfolds progressively across 5 stages without revealing all answers immediately.
+- **Mathematically Honest**: Never fakes results. If an unsupported equation is entered, it clearly informs the student and offers recognized patterns.
 
 ---
 
 ## 🧭 The 5-Step Progressive Experiment Flow
 
 ```
-1 Input  →  2 String w  →  3 Split xyz  →  4 Pump y  →  5 Result
+1 Define Language  →  2 Witness w  →  3 Split xyz  →  4 Pump y  →  5 Result
 ```
 
-### 1. Welcome Screen
-- Welcomes the student with a clean, educational interface.
-- Includes **"Start Simulation →"** and a **"Try Examples …"** drawer featuring predefined valid and invalid test cases.
+### 1. Step 1 — Define Language & Configure Parameters
+- **Two Flexible Selection Modes**:
+  - **✏️ Custom Language / Equation**: Enter any equation (e.g. `L = {0^m 1^n 0^m | m,n >= 0}`). Includes one-click quick pattern chips for testing.
+  - **📚 Predefined Languages**: Grid of standard textbook cases with mathematical notation.
+- **Extensible Parser & Detected Interpretation Card**:
+  - Dynamically extracts alphabet symbols, variables, exponents, block order, and equality constraints.
+  - Displays the live **"Detected Language"** breakdown:
+    - *Detected Pattern*: `0ᵐ → 1ⁿ → 0ᵐ`
+    - *Detected Constraints*:
+      - `✓ First and last 0-blocks have equal length (m = m)`
+      - `✓ Middle 1-block is independent (exponent n)`
+      - `✓ Alphabet: { 0, 1 }`
+      - `✓ Exponents: m ≥ 0, n ≥ 0`
+- **Pumping Length $p$**:
+  - Validates positive integers $p > 0$ (rejects empty, negative, zero, and decimals).
+- **Dual Witness Modes**:
+  - *Generate Automatically*: Derives a canonical witness string based on the parsed AST.
+  - *Enter Custom Witness*: Validates student-provided string against language rules and $|w| \ge p$.
 
-### 2. Step 1 — Enter the Experiment
-- Select target language: $L = \{a^n b^n \mid n \ge 0\}$ or $L = \{a^n b^n c^n \mid n \ge 0\}$.
-- Enter witness string $w$ (e.g. `aaabbb`) and pumping length $p$ (e.g. `3`).
-- **Input Validation**: Verifies that $w \in L$, $|w| \ge p$, and $p > 0$. Displays inline error alerts if invalid.
+### 2. Step 2 — Witness String Analysis
+- Displays the parsed language definition, pumping length $p$, and dynamic formula.
+- Visual character tape: `[ 0₁ ] [ 0₂ ] [ 0₃ ] [ 1₄ ] [ 1₅ ] [ 1₆ ] [ 0₇ ] [ 0₈ ] [ 0₉ ]`.
+- Confirms the Pumping Lemma prerequisite: $|w| \ge p \checkmark$.
+- Educational callout: *"Why this witness?"*
 
-### 3. Step 2 — String Analysis
-- Visually inspects the witness string as an animated character tape:
-  `[ a₁ ] [ a₂ ] [ a₃ ] [ b₄ ] [ b₅ ] [ b₆ ]`
-- Checks the condition $|w| \ge p$ before generating partitions.
-
-### 4. Step 3 — Systematic Decomposition Search
-- Dynamically computes all legal splits $w = xyz$ satisfying:
+### 3. Step 3 — Systematic Decomposition Search ($w = xyz$)
+- Dynamically calculates all legal splits obeying:
   1. $|xy| \le p$
   2. $|y| > 0$
-- **Two Modes available**:
-  - **Systematic Splits Cards**: Shows all valid combinations calculated in JavaScript. Click any card to test it!
-  - **⚡ Find Adversarial Split**: Lets the machine automatically pick the split that breaks language membership (e.g., $x = \text{"a"}, y = \text{"aa"}, z = \text{"bbb"}$).
-  - **Manual Split Mode**: Allows students to enter custom $X, Y, Z$ substrings and validates whether they satisfy the Pumping Lemma conditions.
+- **⚡ Find Adversarial Split**: Machine adversary tests decompositions and selects the split that breaks language membership.
+- **Manual Custom Split Mode**: Students can specify custom $X, Y, Z$ substrings with live condition verification.
+- Educational callout: *"Why this split?"*
 
-### 5. Step 4 — Interactive Pumping & Live Language Check
-- **Visual String Animation**:
-  - Displays partition boxes: `[ a ] [ a a ] [ b b b ]` with labels $X, Y, Z$.
-  - **Interactive $i$ buttons**: `i = 0`, `i = 1`, `i = 2`, `i = 3`.
-  - **$i = 0$ (Pump Down)**: Visually removes $Y \rightarrow [ a ] [ b b b ] \rightarrow \mathbf{abbb} \notin L$ (1 'a' vs 3 'b's).
-  - **$i = 1$**: Original string $\rightarrow \mathbf{aaabbb} \in L$.
-  - **$i = 2$ (Pump Up)**: Duplicates $Y \rightarrow [ a ] [ a a ] [ a a ] [ b b b ] \rightarrow \mathbf{aaaaabbb} \notin L$.
-  - **Live Language Check**: Automatically updates membership and provides plain-English reasoning on every button click.
+### 4. Step 4 — Interactive Pumping ($xy^i z$) & Live Language Check
+- **Visual Token Chips**: Renders partitions $X$, $Y$, and $Z$ with dynamic duplication/removal animations.
+- **Interactive Exponent Controls**: Test $i = 0$, $i = 1$, $i = 2$, $i = 3$.
+- **Dynamic Rule-Based Membership Evaluator**:
+  - `isInLanguage(parsedLanguage, string)` evaluates the AST constraints dynamically.
+  - Returns `✓ IN LANGUAGE` or `✗ NOT IN LANGUAGE` with plain-English reasons:
+    - *"Equality constraint broken for variable 'm': Block 1 (0) has length 2, but Block 3 (0) has length 3."*
+    - *"Second half does not match reversed first half."*
+    - *"Length 4 is composite (divisible by 2)."*
+- Educational callout: *"Why pump?"*
 
-### 6. Step 5 — Final Result & Academic Conclusion
-- Full formal summary: Language, Original String, Selected Split, Tested Exponent $i$, Pumped String, and Final Verdict.
-- Includes expandable academic note explaining that a complete proof requires showing all valid splits fail.
-- Options to:
-  - **Test Another $i$**
-  - **Try Another Split**
-  - **New Experiment**
+### 5. Step 5 — Final Result & Theoretical Conclusion
+- Dynamic verdict card: `✓ COUNTEREXAMPLE FOUND` or `String in Language`.
+- Formal summary table: Target Language, Original Witness, Selected Split, Exponent $i$, Pumped String, Membership Verdict.
+- Expandable Theory of Computation note explaining the formal proof implications.
+- Navigation actions: *Test Another $i$*, *Try Another Split*, *New Experiment →*.
 
 ---
 
-## 🧪 Verified Test Walkthrough
+## 📐 Supported General Pattern Types
 
-```
-Start Simulation
-   ↓
-Enter aaabbb, p = 3
-   ↓
-Start Experiment
-   ↓
-Find Splits
-   ↓
-Find Adversarial Split (Selects x="a", y="aa", z="bbb")
-   ↓
-Click i = 0  →  Generates abbb      →  abbb ∉ L (1 'a' vs 3 'b's)
-   ↓
-Click i = 1  →  Generates aaabbb    →  aaabbb ∈ L
-   ↓
-Click i = 2  →  Generates aaaaabbb  →  aaaaabbb ∉ L (5 'a's vs 3 'b's)
-```
+| Category | Example Equation | Parsed Rule |
+| :--- | :--- | :--- |
+| **Equal Outer Blocks** | `L = {0^m 1^n 0^m \| m,n >= 0}` | $count(0_{\text{first}}) = count(0_{\text{last}})$, $n$ independent |
+| **Equal Powers (2)** | `L = {a^n b^n \| n >= 1}` | $count(a) = count(b) \ge 1$ |
+| **Equal Powers (3)** | `L = {a^n b^n c^n \| n >= 1}` | $count(a) = count(b) = count(c) \ge 1$ |
+| **Binary Equal Powers** | `L = {0^n 1^n \| n >= 0}` | $count(0) = count(1) \ge 0$ |
+| **Independent Powers** | `L = {a^n b^m \| n,m >= 0}` | Independent concatenation over $\{a, b\}$ |
+| **Repeated Blocks** | `L = {a^n b^m a^n \| n,m >= 0}` | First $a$-block equals last $a$-block |
+| **Repeated Blocks** | `L = {a^m b^m c^k \| m,k >= 0}` | $a$-block equals $b$-block, $k$ independent |
+| **Exact Duplicate String** | `L = {ww \| w in {0,1}*}` | $w_1 = w_2$ (identical halves) |
+| **Even Palindrome** | `L = {ww^R \| w in {a,b}*}` | $w_2 = reverse(w_1)$ |
+| **Marked Palindrome** | `L = {wcw^R \| w in {a,b}*}` | Midpoint separator $c$, left equals $reverse(\text{right})$ |
+| **Unary Prime** | `L = {a^n \| n is prime}` | Length is a prime number $\ge 2$ |
+| **Unary Square** | `L = {a^(n^2) \| n >= 1}` | Length is a perfect square |
 
 ---
 
 ## 🚀 How to Run
 
-1. Open the project folder.
-2. Double-click **`index.html`** in any web browser.
+1. Open the project directory.
+2. Double-click or open **`index.html`** in any modern web browser.
 3. Completely standalone — pure HTML5, CSS3, and vanilla JavaScript.
